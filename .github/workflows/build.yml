@@ -1,0 +1,51 @@
+name: itunes-portable-release-actions-workflow
+on:
+  push:
+    # Sequence of patterns matched against refs/tags
+    tags:
+      - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+      - 'c*' # Push events to matching v*, i.e. v1.0, v20.15.10
+
+permissions:
+    contents: write
+    
+jobs:
+  build:
+    name: Create Release
+    runs-on: windows-latest
+    env:
+      targetZip: LTspice-portable-${{ github.ref_name }}.zip
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: installer
+        shell: cmd
+        run: |
+          curl https://ltspice.analog.com/software/LTspice64.msi -L --output installer.msi
+          
+      - name: lessmsi 
+        shell: cmd
+        run: | 
+          curl https://github.com/activescott/lessmsi/releases/download/v1.10.0/lessmsi-v1.10.0.zip -L --output lessmsi.zip && 7z.exe x lessmsi.zip -o"lessmsi"
+          
+      - name: uncompress LTspice64.msi
+        shell: cmd
+        run: |
+          .\lessmsi\lessmsi.exe x "installer.msi" "installation\"
+
+      - shell: cmd
+        run: xcopy /H /Y /C "LTspice.exe.Portable.cmd" "installation\SourceDir\APPDIR"
+          
+      - name: Archive Release
+        uses: thedoctor0/zip-release@master
+        with:
+          type: 'zip'
+          directory: "installation/SourceDir/APPDIR"
+          filename: "${{ env.targetZip }}"
+          
+      - name: Release prebuilt
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: "installation/SourceDir/APPDIR/${{ env.targetZip }}"
+          allowUpdates: true
+          token: ${{ secrets.GITHUB_TOKEN }}
