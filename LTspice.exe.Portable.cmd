@@ -1,12 +1,12 @@
 @echo off
 
-echo %PATH%
-
+set PATH=
 set USERPROFILE=%~dp0USERPROFILE
 set DESKTOP=%USERPROFILE%\Desktop
 set APPDATA=%USERPROFILE%\AppData\Roaming
 set LOCALAPPDATA=%USERPROFILE%\AppData\Local
 
+echo %PATH%
 echo %USERPROFILE%
 echo %DESKTOP%
 echo %APPDATA%
